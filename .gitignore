@@ -11,3 +11,4 @@ data/*.npy
 
 # === Служебные папки Jupyter ===
 .ipynb_checkpoints/
+models/*.joblib

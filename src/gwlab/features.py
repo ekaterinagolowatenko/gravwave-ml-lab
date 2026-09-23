@@ -1,6 +1,6 @@
 import numpy as np
 from scipy import signal
-
+import pywt
 
 def extract_features(h, fs=4096):
     """
@@ -18,10 +18,9 @@ def extract_features(h, fs=4096):
         np.percentile(a, 90),
         np.percentile(a, 99),
     ]
-    
-    # === ЧАСТОТНЫЕ ПРИЗНАКИ (FFT) ===
+  
     fft_vals = np.fft.rfft(h)
-    freqs = np.fft.rfftfreq(len(h), d=1.0/fs)
+    freqs = np.fft.rfftfreq(len(h), d=1.0/fs) #вычисляет массив физических частот для реального быстрого преобразования Фурье (RFFT)
     power_spectrum = np.abs(fft_vals) ** 2
     
     # Энергия в разных частотных диапазонах
@@ -54,3 +53,20 @@ def extract_features(h, fs=4096):
     all_features = amp_features + freq_features + time_features
     
     return np.array(all_features, dtype=float)
+
+def extract_wavelet_features(h, wavelet='db4', level=3):
+    """
+    Вейвлет-признаки: ЧАСТОТА + ВРЕМЯ одновременно.
+    Возвращает 16 признаков (4 уровня × 4 статистики).
+    """
+    coeffs = pywt.wavedec(h, wavelet, level=level)
+
+    features = []
+    for c in coeffs:
+        features.extend([
+            np.std(c),              # разброс коэффициентов уровня
+            np.max(np.abs(c)),      # пик уровня
+            np.sqrt(np.mean(c ** 2)),  # RMS уровня
+            np.sum(c ** 2),         # энергия уровня
+        ])
+    return np.array(features, dtype=float)
