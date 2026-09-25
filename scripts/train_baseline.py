@@ -48,11 +48,8 @@ def run_experiment(name, model, X, y):
 if __name__ == "__main__":
     print("🧠 Генерируем датасет (SNR 0.5–30.0: сигнал ТИШЕ шума)...")
     real_noise = load_real_noise()
-    from gwlab.noise import bandpass
-    if real_noise is not None:
-        real_noise = bandpass(real_noise)
-        print(f"После band-pass: std={real_noise.std():.3e}")
-    X_basic, X_full, y = build_dataset(2000, real_noise, snr_range=(0.5, 30.0))
+    
+    X_basic, X_full, y = build_dataset(8000, real_noise, snr_range=(0.5, 30.0))
     print(f"Форма X_basic: {X_basic.shape}, X_full: {X_full.shape}")
     
 

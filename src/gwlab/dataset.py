@@ -1,6 +1,7 @@
 import os
 import numpy as np
 from .waveforms import generate_chirp
+from .noise import bandpass
 
 # Путь к файлу с шумом: от текущей папки (src/gwlab) два уровня вверх, потом в data
 NOISE_FILE = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'ligo_noise.npy')
@@ -55,7 +56,7 @@ def generate_random_sample(fs=4096, duration=2.0, min_mass=10.0, max_mass=50.0,
         clean_h = clean_h / np.max(np.abs(clean_h))
 
         # 4-5. Масштаб относительно шума: лог-SNR
-        noise_std = np.std(noise)
+        noise_std = np.std(bandpass(noise, fs=fs))   # линейка на ОТФИЛЬТРОВАННОМ шуме
         snr = 10 ** np.random.uniform(np.log10(snr_range[0]), np.log10(snr_range[1]))
         clean_h = clean_h * snr * noise_std
 
@@ -72,5 +73,5 @@ def generate_random_sample(fs=4096, duration=2.0, min_mass=10.0, max_mass=50.0,
         label = 0
         true_m1 = 0.0
         true_m2 = 0.0
-
+    noisy_h = bandpass(noisy_h, fs=fs)   # фильтр СУММЫ: зеркально детекции
     return t, noisy_h, label, true_m1, true_m2

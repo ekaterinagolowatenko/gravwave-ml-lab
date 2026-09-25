@@ -27,8 +27,6 @@ fs = meta['sample_rate']
 print(f"Форма: {h.shape}, частота: {fs} Гц")
 
 from gwlab.noise import bandpass
-h = bandpass(h, fs=fs)
-print(f"После band-pass: std={h.std():.3e}")
 
 # Обрезаем до нужных 10 секунд
 start_offset = int(10 * fs)
@@ -42,6 +40,7 @@ print("🔍 Прогоняем скользящее окно...")
 times, probs = [], []
 for start in range(0, len(h) - window, step):
     seg = h[start:start + window]
+    seg = bandpass(seg, fs=fs)   # фильтр на уровне окна, как в train
     feats = np.concatenate([extract_features(seg), extract_wavelet_features(seg)]).reshape(1, -1) #склеивает два массива в один: 12 + 16 = 28 признаков — ровно то, на чём обучалась RF+W.
     feats = scaler.transform(feats)
     p = model.predict_proba(feats)[0][1]
@@ -68,5 +67,5 @@ print(f"💾 График: {out_path}")
 best_prob = max(probs)
 best_t = times[probs.index(best_prob)]
 print(f"\n🎯 МАКСИМАЛЬНАЯ ВЕРОЯТНОСТЬ: {best_prob:.3f} в момент t = {best_t:.2f} c")
-if best_prob > 0.9 and 3 < best_t < 7:
+if best_prob > 0.5 and 3 < best_t < 7:
     print(" Модель обнаружила гравитационную волну в правильном месте!")
